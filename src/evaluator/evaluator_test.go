@@ -3,7 +3,7 @@ package evaluator
 import (
 	"testing"
 
-	"github.com/Icheka/go-rules-engine/src/ast"
+	"github.com/tupi-fintech/go-rules-engine/src/ast"
 )
 
 func TestEvaluateConditional(t *testing.T) {

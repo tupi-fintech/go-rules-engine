@@ -1,8 +1,8 @@
 package ruleEngine
 
 import (
-	"github.com/Icheka/go-rules-engine/src/ast"
-	"github.com/Icheka/go-rules-engine/src/evaluator"
+	"github.com/tupi-fintech/go-rules-engine/src/ast"
+	"github.com/tupi-fintech/go-rules-engine/src/evaluator"
 )
 
 type results []ast.Event

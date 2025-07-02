@@ -1,5 +1,5 @@
-module github.com/Icheka/go-rules-engine
+module github.com/tupi-fintech/go-rules-engine
 
-go 1.18
+go 1.24
 
 require github.com/fatih/structs v1.1.0
