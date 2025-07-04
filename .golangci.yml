@@ -16,7 +16,6 @@ linters:
     # Additional useful linters
     - gofmt
     - goimports
-    - golint
     - gosec
     - misspell
     - unconvert
@@ -25,7 +24,6 @@ linters:
     - gocognit
     - prealloc
     - revive
-    - exportloopref
     - gocritic
 
 linters-settings:
