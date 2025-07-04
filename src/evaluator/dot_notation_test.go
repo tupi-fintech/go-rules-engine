@@ -168,8 +168,16 @@ func TestEvaluateConditionalWithDotNotation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			value := GetFactValue(tt.conditional, data)
-			result := EvaluateConditional(tt.conditional, value)
+			value, err := GetFactValue(tt.conditional, data)
+			if err != nil {
+				t.Errorf("Unexpected error from GetFactValue: %v", err)
+				return
+			}
+			result, err := EvaluateConditional(tt.conditional, value)
+			if err != nil {
+				t.Errorf("Unexpected error from EvaluateConditional: %v", err)
+				return
+			}
 			if result != tt.expected {
 				t.Errorf("EvaluateConditional with %q = %v, want %v", tt.conditional.Fact, result, tt.expected)
 			}
@@ -206,7 +214,11 @@ func TestEvaluateRuleWithDotNotation(t *testing.T) {
 	}
 
 	opts := &Options{AllowUndefinedVars: false}
-	result := EvaluateRule(rule, data, opts)
+	result, err := EvaluateRule(rule, data, opts)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+		return
+	}
 
 	if !result {
 		t.Errorf("Expected rule to evaluate to true with nested field access")
@@ -236,7 +248,11 @@ func TestEvaluateRuleWithDotNotationFail(t *testing.T) {
 	}
 
 	opts := &Options{AllowUndefinedVars: false}
-	result := EvaluateRule(rule, data, opts)
+	result, err := EvaluateRule(rule, data, opts)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+		return
+	}
 
 	if result {
 		t.Errorf("Expected rule to evaluate to false when amount is not less than 1")
