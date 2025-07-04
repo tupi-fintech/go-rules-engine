@@ -15,25 +15,25 @@ type Options struct {
 
 var options *Options
 
-func EvaluateConditional(conditional *ast.Conditional, identifier interface{}) bool {
+func EvaluateConditional(conditional *ast.Conditional, identifier interface{}) (bool, error) {
 	ok, err := EvaluateOperator(identifier, conditional.Value, conditional.Operator)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
-	return ok
+	return ok, nil
 }
 
-func GetFactValue(condition *ast.Conditional, data Data) interface{} {
+func GetFactValue(condition *ast.Conditional, data Data) (interface{}, error) {
 	value := getNestedValue(data, condition.Fact)
 
 	if value == nil {
 		if options.AllowUndefinedVars {
-			return false
+			return false, nil
 		}
-		panic(fmt.Sprintf("value for identifier %s not found", condition.Fact))
+		return nil, fmt.Errorf("value for identifier %s not found", condition.Fact)
 	}
 
-	return value
+	return value, nil
 }
 
 // getNestedValue retrieves a value from nested data using dot notation
@@ -110,59 +110,81 @@ func getFieldFromStruct(obj interface{}, fieldName string) interface{} {
 	return field.Interface()
 }
 
-func EvaluateAllCondition(conditions *[]ast.Conditional, data Data) bool {
+func EvaluateAllCondition(conditions *[]ast.Conditional, data Data) (bool, error) {
 	isFalse := false
 
 	for _, condition := range *conditions {
-		value := GetFactValue(&condition, data)
-		if !EvaluateConditional(&condition, value) {
+		value, err := GetFactValue(&condition, data)
+		if err != nil {
+			return false, err
+		}
+		result, err := EvaluateConditional(&condition, value)
+		if err != nil {
+			return false, err
+		}
+		if !result {
 			isFalse = true
 		}
 
 		if isFalse {
-			return false
+			return false, nil
 		}
 	}
 
-	return true
+	return true, nil
 }
 
-func EvaluateAnyCondition(conditions *[]ast.Conditional, data Data) bool {
+func EvaluateAnyCondition(conditions *[]ast.Conditional, data Data) (bool, error) {
 	for _, condition := range *conditions {
-		value := GetFactValue(&condition, data)
-		if EvaluateConditional(&condition, value) {
-			return true
+		value, err := GetFactValue(&condition, data)
+		if err != nil {
+			return false, err
+		}
+		result, err := EvaluateConditional(&condition, value)
+		if err != nil {
+			return false, err
+		}
+		if result {
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
-func EvaluateCondition(condition *[]ast.Conditional, kind string, data Data) bool {
+func EvaluateCondition(condition *[]ast.Conditional, kind string, data Data) (bool, error) {
 	switch kind {
 	case "all":
 		return EvaluateAllCondition(condition, data)
 	case "any":
 		return EvaluateAnyCondition(condition, data)
 	default:
-		panic(fmt.Sprintf("condition type %s is invalid", kind))
+		return false, fmt.Errorf("condition type %s is invalid", kind)
 	}
 }
 
-func EvaluateRule(rule *ast.Rule, data Data, opts *Options) bool {
+func EvaluateRule(rule *ast.Rule, data Data, opts *Options) (bool, error) {
 	options = opts
 	any, all := false, false
 
 	if len(rule.Condition.Any) == 0 {
 		any = true
 	} else {
-		any = EvaluateCondition(&rule.Condition.Any, "any", data)
+		result, err := EvaluateCondition(&rule.Condition.Any, "any", data)
+		if err != nil {
+			return false, err
+		}
+		any = result
 	}
 	if len(rule.Condition.All) == 0 {
 		all = true
 	} else {
-		all = EvaluateCondition(&rule.Condition.All, "all", data)
+		result, err := EvaluateCondition(&rule.Condition.All, "all", data)
+		if err != nil {
+			return false, err
+		}
+		all = result
 	}
 
-	return any && all
+	return any && all, nil
 }

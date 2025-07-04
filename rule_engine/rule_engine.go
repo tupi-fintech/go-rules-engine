@@ -21,7 +21,7 @@ type RuleEngine struct {
 	Results results
 }
 
-func (re *RuleEngine) EvaluateStruct(jsonText *ast.Rule, identifier evaluator.Data) bool {
+func (re *RuleEngine) EvaluateStruct(jsonText *ast.Rule, identifier evaluator.Data) (bool, error) {
 	return evaluator.EvaluateRule(jsonText, identifier, &evaluator.Options{
 		AllowUndefinedVars: re.AllowUndefinedVars,
 	})
@@ -37,15 +37,22 @@ func (re *RuleEngine) AddRules(rules ...string) *RuleEngine {
 	return re
 }
 
-func (re *RuleEngine) EvaluateRules(data evaluator.Data) results {
+func (re *RuleEngine) EvaluateRules(data evaluator.Data) (results, error) {
 	for _, j := range re.Rules {
-		rule := ast.ParseJSON(j)
+		rule, err := ast.ParseJSON(j)
+		if err != nil {
+			return nil, err
+		}
 
-		if re.EvaluateStruct(rule, data) {
+		matched, err := re.EvaluateStruct(rule, data)
+		if err != nil {
+			return nil, err
+		}
+		if matched {
 			re.Results = append(re.Results, rule.Event)
 		}
 	}
-	return re.Results
+	return re.Results, nil
 }
 
 func New(options *EvaluatorOptions) *RuleEngine {
