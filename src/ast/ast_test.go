@@ -39,7 +39,10 @@ func TestParseJSON(t *testing.T) {
 		}
 	}`
 
-	rule := ParseJSON(j)
+	rule, err := ParseJSON(j)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 
 	if fmt.Sprintf("%T", rule) != "*ast.Rule" {
 		t.Fatalf("expected rule to be *ast.Rule, got %T", rule)

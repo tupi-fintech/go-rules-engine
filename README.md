@@ -1,10 +1,6 @@
-![The right way to Go](https://raw.githubusercontent.com/Icheka/go-rules-engine/ef41df8a2a2effdb340fc2d352d673e9ca82ad50/gopher-ladder.svg "The right way to Go")
-
-### **"The right way to Go"**
-
-<br />
-
 # Go-Rules-Engine
+
+This project is a fork of [Icheka/go-rules-engine](https://github.com/Icheka/go-rules-engine)
 
 ### A JSON-based rule engine, written in Go.
 
@@ -21,10 +17,10 @@ Go-Rules-Engines is a powerful, lightweight, un-opinionated rules engine written
 
 ## Installation
 
-Works best with Go >=1.8.
+Works best with Go >=1.24.
 
 ```bash
-go get github.com/icheka/go-rules-engine
+go get github.com/tupi-fintech/go-rules-engine
 ```
 
 ## Synopsis
@@ -104,6 +100,87 @@ Thus, the discount Rule can be expressed as:
 }
 ```
 
+## Nested Field Access with Dot Notation
+
+Go-Rules-Engine now supports accessing nested fields using dot notation. This allows you to reference deeply nested properties in your data structures without having to flatten your data.
+
+### Example: Transaction Amount Validation
+
+Consider a transaction object with nested properties:
+
+```json
+{
+  "transaction": {
+    "amount": 0.5,
+    "currency": "USD",
+    "user": {
+      "id": 123,
+      "name": "John Doe",
+      "age": 25
+    }
+  }
+}
+```
+
+You can create rules that access these nested fields directly:
+
+```json
+{
+  "condition": {
+    "all": [
+      {
+        "identifier": "transaction.amount",
+        "operator": "lt",
+        "value": 1
+      },
+      {
+        "identifier": "transaction.user.age",
+        "operator": "gte",
+        "value": 18
+      }
+    ]
+  },
+  "event": {
+    "type": "micro_transaction",
+    "payload": {
+      "message": "Small transaction from adult user"
+    }
+  }
+}
+```
+
+### Supported Data Types
+
+Dot notation works with:
+- **Nested maps**: `map[string]interface{}`
+- **Structs**: Using reflection to access fields
+- **Mixed structures**: Maps containing structs and vice versa
+
+### Example with Go Structs
+
+```go
+type User struct {
+    ID   int    `json:"id"`
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
+
+type Transaction struct {
+    Amount   float64 `json:"amount"`
+    Currency string  `json:"currency"`
+    User     User    `json:"user"`
+}
+
+// When using ast.Mapify(), field names become capitalized
+data := ast.Mapify(Transaction{
+    Amount: 150.0,
+    Currency: "USD",
+    User: User{ID: 123, Name: "John", Age: 25},
+})
+
+// Rule would use: "Transaction.Amount", "Transaction.User.Age", etc.
+```
+
 ## Processing Rules
 
 Following the example above, assuming that the discount Rule is stored in the file system, we can process the Rule like so:
@@ -115,7 +192,7 @@ import (
     "fmt"
     "os"
 
-    ruleEngine "github.com/Icheka/go-rules-engine/rule_engine"
+    ruleEngine "github.com/tupi-fintech/go-rules-engine/rule_engine"
 )
 
 func main() {
@@ -322,7 +399,7 @@ The following operators will be added in future:
 Although Go-Rules-Engine requires facts to be evaluated against rules to have a map[string]interface{} type, most Go code is designed and implemented around structs (not maps). Go-Rules-Engine provides a utility for converting your struct to a map:
 
 ```go
-import "github.com/Icheka/go-rules-engine/ast"
+import "github.com/tupi-fintech/go-rules-engine/ast"
 
 s := &MyStruct{
     Name: "Icheka",

@@ -3,7 +3,7 @@ package evaluator
 import (
 	"testing"
 
-	"github.com/Icheka/go-rules-engine/src/ast"
+	"github.com/tupi-fintech/go-rules-engine/src/ast"
 )
 
 func TestEvaluateConditional(t *testing.T) {
@@ -31,7 +31,12 @@ func TestEvaluateConditional(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		if ok := EvaluateConditional(tt.conditional, tt.identifier); ok != tt.expected {
+		ok, err := EvaluateConditional(tt.conditional, tt.identifier)
+		if err != nil {
+			t.Errorf("tests[%d] - unexpected error: %v", i, err)
+			continue
+		}
+		if ok != tt.expected {
 			t.Errorf("tests[%d] - expected EvaluateConditional to return %t, got=%t", i, tt.expected, ok)
 		}
 	}
@@ -96,7 +101,12 @@ func TestEvaluateAllCondition(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		if ok := EvaluateAllCondition(&tt.payload.conditions, tt.payload.identifier); ok != tt.expected {
+		ok, err := EvaluateAllCondition(&tt.payload.conditions, tt.payload.identifier)
+		if err != nil {
+			t.Errorf("tests[%d] - unexpected error: %v", i, err)
+			continue
+		}
+		if ok != tt.expected {
 			t.Errorf("tests[%d] - expected EvaluateAllCondition to be %t, got=%t", i, tt.expected, ok)
 		}
 	}
@@ -185,7 +195,12 @@ func TestEvaluateAnyCondition(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		if ok := EvaluateAnyCondition(&tt.payload.conditions, tt.payload.identifier); ok != tt.expected {
+		ok, err := EvaluateAnyCondition(&tt.payload.conditions, tt.payload.identifier)
+		if err != nil {
+			t.Errorf("tests[%d] - unexpected error: %v", i, err)
+			continue
+		}
+		if ok != tt.expected {
 			t.Errorf("tests[%d] - expected EvaluateAnyCondition to be %t, got=%t", i, tt.expected, ok)
 		}
 	}

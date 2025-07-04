@@ -2,6 +2,7 @@ package ast
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/fatih/structs"
 )
@@ -32,12 +33,12 @@ type Rule struct {
 }
 
 // parse JSON string as Rule
-func ParseJSON(j string) *Rule {
+func ParseJSON(j string) (*Rule, error) {
 	var rule *Rule
 	if err := json.Unmarshal([]byte(j), &rule); err != nil {
-		panic("expected valid JSON")
+		return nil, fmt.Errorf("expected valid JSON: %w", err)
 	}
-	return rule
+	return rule, nil
 }
 
 // Convert struct to map. Can be used to generate a identifier (which has to be of type map[string]interface{}) from a struct.
